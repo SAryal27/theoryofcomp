@@ -27,8 +27,8 @@ public class App {
             input = GUI.getInput();
             alphabet = GUI.getAlphabet().toCharArray();
         }
-
-    private void updateInputAndAlphabet(){
+    
+    private void updateValues(){//helper to get current values from GUI
         input = GUI.getInput();
         alphabet = GUI.getAlphabet().toCharArray();
     }
@@ -43,7 +43,7 @@ public class App {
         }
     }
     public boolean inputIsValid(){
-        updateInputAndAlphabet();
+        updateValues();
         populateAlphabetList();//make sure that we create our alphabet list
 
         if(alphabetList.isEmpty()){return false;}//can't run it if the alphabet has no characters

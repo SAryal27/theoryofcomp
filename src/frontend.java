@@ -1,5 +1,8 @@
 // frontend.java
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,15 +13,13 @@ public class frontend extends JFrame {
     private JTextArea alphabetField;
     private JTextArea startField;
     private JTextArea acceptField;
-    private JTextArea transitionsField;
+    private JTable transitionsTable;
 
-    private App app; //refrence to the app
+    private App app;
 
 
     private JTextArea outputArea;
-    private JButton stepButton, resetButton, removeButton;
-    private JLabel statusLabel;
-    
+    private JButton stepButton, resetButton, removeButton;    
     public frontend(App app) {
         this.app = app;
         initializeUI();
@@ -58,7 +59,6 @@ public class frontend extends JFrame {
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
         
-    
         
         // Editor menu
         JMenu editorMenu = new JMenu("Editor");
@@ -86,8 +86,8 @@ public class frontend extends JFrame {
         inputField.setText("aaaabb");
         
         // States panel
-        JPanel statesPanel = createLabeledPanel("States", statesField = new JTextArea(1, 50));
-        statesField.setText("q0, q1, q2");
+        JPanel statesPanel = createLabeledPanel("States(In form: NameOfState0 NameOfState1...)", statesField = new JTextArea(1, 50));
+        statesField.setText("q0 q1 q2");
         
         // Alphabet panel
         JPanel alphabetPanel = createLabeledPanel("Alphabet(Can be anything but space)", alphabetField = new JTextArea(1, 50));
@@ -101,9 +101,49 @@ public class frontend extends JFrame {
         JPanel acceptPanel = createLabeledPanel("Accept States", acceptField = new JTextArea(1, 50));
         acceptField.setText("q2");
         
-        // Transitions panel
-        JPanel transitionsPanel = createLabeledPanel("Transitions (ex: current state, transition, next state)", transitionsField = new JTextArea(2, 50));
-        transitionsField.setText("q0,a,q1; q0,b,q0; q1,a,q2; q1,b,q1; q2,a,q2; q2,b,q2");
+        // Transitions table
+        String[] alphabet = createLabels(getAlphabet());
+        String[] states = createLabels(getStates());
+
+        // Create table model with +1 row/col for headers
+        int rows = states.length + 1;
+        int cols = alphabet.length + 1;
+        DefaultTableModel transitionsModel = new DefaultTableModel(rows, cols);
+
+        transitionsModel.setValueAt("States", 0, 0);
+
+        // Top row: alphabet symbols
+        for (int j = 0; j < alphabet.length; j++) {
+            transitionsModel.setValueAt(alphabet[j], 0, j + 1);
+        }
+
+        // Left column: state names
+        for (int i = 0; i < states.length; i++) {
+            transitionsModel.setValueAt(states[i], i + 1, 0);
+        }
+
+        // Create JTable
+        transitionsTable = new JTable(transitionsModel);
+        transitionsTable.setTableHeader(null);
+        transitionsTable.setRowHeight(25);
+        transitionsTable.setFillsViewportHeight(true);
+        transitionsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        // Wrap in scroll pane
+        JScrollPane tableScroll = new JScrollPane(transitionsTable);
+        tableScroll.setPreferredSize(new Dimension(700, 150));
+
+        // Add panel
+        JPanel transitionsPanel = new JPanel(new BorderLayout());
+        transitionsPanel.setBorder(BorderFactory.createTitledBorder("Transitions Table"));
+        transitionsPanel.add(tableScroll, BorderLayout.CENTER);
+
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        mainPanel.add(transitionsPanel);
+
+
+
+
         
         // Output panel - Simulation Steps (takes remaining space)
         JPanel outputPanel = new JPanel(new BorderLayout());
@@ -127,9 +167,11 @@ public class frontend extends JFrame {
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
         mainPanel.add(acceptPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
-        mainPanel.add(transitionsPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // More spacing
         mainPanel.add(outputPanel);
+
+        addTextBoxListeners();
+
         
         // Wrap in scroll pane in case content overflows
         JScrollPane mainScroll = new JScrollPane(mainPanel);
@@ -152,8 +194,6 @@ public class frontend extends JFrame {
         return panel;
     }
 
-
-
     
     private void createControlPanel() {
         JPanel controlPanel = new JPanel(new FlowLayout());
@@ -173,12 +213,44 @@ public class frontend extends JFrame {
         stepButton.addActionListener(e -> stepSimulation());
         resetButton.addActionListener(e -> resetSimulation());
         removeButton.addActionListener(e -> removeStep());
+
+
         
         controlPanel.add(stepButton);
         controlPanel.add(resetButton);
         controlPanel.add(removeButton);
         
         add(controlPanel, BorderLayout.SOUTH);
+    }
+    
+
+    private void addTextBoxListeners() {
+    DocumentListener listener = new DocumentListener() {
+        @Override
+        public void insertUpdate(DocumentEvent e) { changeOnTable(); }
+        @Override
+        public void removeUpdate(DocumentEvent e) { changeOnTable(); }
+        @Override
+        public void changedUpdate(DocumentEvent e) { changeOnTable(); }
+    };
+
+    // Attach listener to your states and alphabet text areas
+    statesField.getDocument().addDocumentListener(listener);
+    alphabetField.getDocument().addDocumentListener(listener);
+}
+
+
+
+    //helper method to get the labels for the alphabet and the states
+    private String[] createLabels(String s){
+        s.trim();
+        String[] array =  s.split(" ");//will make string seperating by spaces
+
+        for (int i = 0; i < array.length; i++){
+            array[i] = array[i].trim();
+        }
+
+        return array;
     }
     
 
@@ -198,9 +270,7 @@ public class frontend extends JFrame {
     public String getAcceptStates(){
         return acceptField.getText();
     }
-    public String getTransitions(){
-        return transitionsField.getText();
-    }    
+
 
 
 
@@ -224,9 +294,37 @@ public class frontend extends JFrame {
     private void resetSimulation() {
         outputArea.setText("Simulation reset\n");
     }
-    
   
     private void removeStep() {
         outputArea.append("Step removed\n");//add this to a new line
     }
+
+    private void changeOnTable(){
+        //refresh the table when someone types on it
+
+        String[] alphabet = createLabels(getAlphabet());
+        String[] states = createLabels(getStates());
+
+        DefaultTableModel model = (DefaultTableModel) transitionsTable.getModel();
+
+        // Ensure the model has enough rows and columns
+        int requiredRows = states.length + 1;
+        int requiredCols = alphabet.length + 1;
+
+        model.setRowCount(requiredRows);
+        model.setColumnCount(requiredCols);
+
+        model.setValueAt("States", 0, 0);
+
+        // Top row = alphabet
+        for (int i = 0; i < alphabet.length; i++) {
+            model.setValueAt(alphabet[i], 0, i + 1);
+        }
+
+        // Left column = states
+        for (int i = 0; i < states.length; i++) {
+            model.setValueAt(states[i], i + 1, 0);
+        }
+
+        }
 }
