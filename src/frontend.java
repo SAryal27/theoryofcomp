@@ -12,13 +12,17 @@ public class frontend extends JFrame {
     private JTextArea acceptField;
     private JTextArea transitionsField;
 
+    private App app; //refrence to the app
+
 
     private JTextArea outputArea;
     private JButton stepButton, resetButton, removeButton;
     private JLabel statusLabel;
     
-    public frontend() {
+    public frontend(App app) {
+        this.app = app;
         initializeUI();
+
     }
     
     private void initializeUI() {
@@ -86,8 +90,8 @@ public class frontend extends JFrame {
         statesField.setText("q0, q1, q2");
         
         // Alphabet panel
-        JPanel alphabetPanel = createLabeledPanel("Alphabet", alphabetField = new JTextArea(1, 50));
-        alphabetField.setText("a, b");
+        JPanel alphabetPanel = createLabeledPanel("Alphabet(Can be anything but space)", alphabetField = new JTextArea(1, 50));
+        alphabetField.setText("a b");
         
         // Start state panel
         JPanel startPanel = createLabeledPanel("Start State", startField = new JTextArea(1, 50));
@@ -99,7 +103,7 @@ public class frontend extends JFrame {
         
         // Transitions panel
         JPanel transitionsPanel = createLabeledPanel("Transitions (ex: current state, transition, next state)", transitionsField = new JTextArea(2, 50));
-        transitionsField.setText("q0,a->q1; q0,b->q0; q1,a->q2; q1,b->q1; q2,a->q2; q2,b->q2");
+        transitionsField.setText("q0,a,q1; q0,b,q0; q1,a,q2; q1,b,q1; q2,a,q2; q2,b,q2");
         
         // Output panel - Simulation Steps (takes remaining space)
         JPanel outputPanel = new JPanel(new BorderLayout());
@@ -177,27 +181,52 @@ public class frontend extends JFrame {
         add(controlPanel, BorderLayout.SOUTH);
     }
     
+
+    //Getter Methods for the input boxes
+    public String getInput(){
+        return inputField.getText();
+    }
+
+    public String getStates(){
+        return statesField.getText();
+    } 
+
+    public String getAlphabet(){
+        return alphabetField.getText();
+    }
     
+    public String getAcceptStates(){
+        return acceptField.getText();
+    }
+    public String getTransitions(){
+        return transitionsField.getText();
+    }    
+
+
+
     // Simulation methods
     private void simulateInput() {
-        String input = inputField.getText().trim();
-        outputArea.setText("Simulating input: " + input + "\n");
-        statusLabel.setText("Simulating: " + input);
+
+        if(app.inputIsValid()){
+            String input = inputField.getText().trim();
+            outputArea.setText("Valid, Simulating input: " + input + "\n");
+        }else{
+            outputArea.setText("Not a valid input\n");
+
+        }
+
     }
     
     private void stepSimulation() {
         outputArea.append("Step executed\n");
-        statusLabel.setText("Step completed");
     }
     
     private void resetSimulation() {
         outputArea.setText("Simulation reset\n");
-        statusLabel.setText("Ready");
     }
     
   
     private void removeStep() {
-        outputArea.append("Step removed\n");
-        statusLabel.setText("Step removed");
+        outputArea.append("Step removed\n");//add this to a new line
     }
 }
