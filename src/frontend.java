@@ -5,7 +5,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class frontend extends JFrame {
-    private JTextArea inputArea;
+    private JTextArea inputField;
+    private JTextArea statesField;
+    private JTextArea alphabetField;
+    private JTextArea startField;
+    private JTextArea acceptField;
+    private JTextArea transitionsField;
+
+
     private JTextArea outputArea;
     private JButton stepButton, resetButton, removeButton;
     private JLabel statusLabel;
@@ -31,9 +38,6 @@ public class frontend extends JFrame {
         
         // Create control panel
         createControlPanel();
-        
-        // Create status bar
-        createStatusBar();
     }
     
     private void createMenuBar() {
@@ -68,36 +72,84 @@ public class frontend extends JFrame {
     }
     
     private void createMainContent() {
-        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        // Main panel using BoxLayout for vertical stacking
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Left panel - Input
-        JPanel inputPanel = new JPanel(new BorderLayout());
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Input"));
+        // Input panel
+        JPanel inputPanel = createLabeledPanel("Input String", inputField = new JTextArea(1, 50));
+        inputField.setText("aaaabb");
         
-        inputArea = new JTextArea(10, 30);
-        inputArea.setText("aaaabb");
-        inputArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        JScrollPane inputScroll = new JScrollPane(inputArea);
+        // States panel
+        JPanel statesPanel = createLabeledPanel("States", statesField = new JTextArea(1, 50));
+        statesField.setText("q0, q1, q2");
         
-        inputPanel.add(inputScroll, BorderLayout.CENTER);
+        // Alphabet panel
+        JPanel alphabetPanel = createLabeledPanel("Alphabet", alphabetField = new JTextArea(1, 50));
+        alphabetField.setText("a, b");
         
-        // Right panel - Output/Simulation
+        // Start state panel
+        JPanel startPanel = createLabeledPanel("Start State", startField = new JTextArea(1, 50));
+        startField.setText("q0");
+        
+        // Accept states panel
+        JPanel acceptPanel = createLabeledPanel("Accept States", acceptField = new JTextArea(1, 50));
+        acceptField.setText("q2");
+        
+        // Transitions panel
+        JPanel transitionsPanel = createLabeledPanel("Transitions (ex: current state, transition, next state)", transitionsField = new JTextArea(2, 50));
+        transitionsField.setText("q0,a->q1; q0,b->q0; q1,a->q2; q1,b->q1; q2,a->q2; q2,b->q2");
+        
+        // Output panel - Simulation Steps (takes remaining space)
         JPanel outputPanel = new JPanel(new BorderLayout());
         outputPanel.setBorder(BorderFactory.createTitledBorder("Simulation Steps"));
         
-        outputArea = new JTextArea(10, 30);
+        outputArea = new JTextArea(15, 50);
         outputArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         outputArea.setEditable(false);
         JScrollPane outputScroll = new JScrollPane(outputArea);
         
         outputPanel.add(outputScroll, BorderLayout.CENTER);
         
+        // Add all panels to main panel in vertical order
         mainPanel.add(inputPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
+        mainPanel.add(statesPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
+        mainPanel.add(alphabetPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
+        mainPanel.add(startPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
+        mainPanel.add(acceptPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
+        mainPanel.add(transitionsPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // More spacing
         mainPanel.add(outputPanel);
         
-        add(mainPanel, BorderLayout.CENTER);
+        // Wrap in scroll pane in case content overflows
+        JScrollPane mainScroll = new JScrollPane(mainPanel);
+        add(mainScroll, BorderLayout.CENTER);
     }
+    
+    // Helper method to create consistent labeled panels
+    private JPanel createLabeledPanel(String title, JTextArea textArea) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(title));
+        
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(0, textArea.getRows() * 20)); // Dynamic height
+        
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+
+
     
     private void createControlPanel() {
         JPanel controlPanel = new JPanel(new FlowLayout());
@@ -125,15 +177,10 @@ public class frontend extends JFrame {
         add(controlPanel, BorderLayout.SOUTH);
     }
     
-    private void createStatusBar() {
-        statusLabel = new JLabel("Ready");
-        statusLabel.setBorder(BorderFactory.createEtchedBorder());
-        add(statusLabel, BorderLayout.NORTH);
-    }
     
     // Simulation methods
     private void simulateInput() {
-        String input = inputArea.getText().trim();
+        String input = inputField.getText().trim();
         outputArea.setText("Simulating input: " + input + "\n");
         statusLabel.setText("Simulating: " + input);
     }
