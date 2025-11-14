@@ -107,8 +107,8 @@ public class frontend extends JFrame {
         acceptField.setText("q2");
         
         // Transitions table
-        String[] alphabet = createLabels(getAlphabet());
-        String[] states = createLabels(getStates());
+        alphabet = createLabels(getAlphabet());
+        states = createLabels(getStates());
 
         // Create table model with +1 row/col for headers
         int rows = states.length + 1;
