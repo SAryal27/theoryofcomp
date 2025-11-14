@@ -1,6 +1,7 @@
 // frontend.java
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
@@ -11,14 +12,18 @@ public class frontend extends JFrame {
     private JTextArea inputField;
     private JTextArea statesField;
     private JTextArea alphabetField;
-    private JTextArea startField;
-    private JTextArea acceptField;
+    private JTextArea startField;//start states input
+    private JTextArea acceptField;//accept states input
     private JTable transitionsTable;
+
+    private String[] alphabet;
+    private String[] states;
+
 
     private App app;
 
 
-    private JTextArea outputArea;
+    public JTextArea outputArea;
     private JButton stepButton, resetButton, removeButton;    
     public frontend(App app) {
         this.app = app;
@@ -239,19 +244,6 @@ public class frontend extends JFrame {
     alphabetField.getDocument().addDocumentListener(listener);
 }
 
-
-
-    //helper method to get the labels for the alphabet and the states
-    private String[] createLabels(String s){
-        s.trim();
-        String[] array =  s.split(" ");//will make string seperating by spaces
-
-        for (int i = 0; i < array.length; i++){
-            array[i] = array[i].trim();
-        }
-
-        return array;
-    }
     
 
     //Getter Methods for the input boxes
@@ -270,40 +262,29 @@ public class frontend extends JFrame {
     public String getAcceptStates(){
         return acceptField.getText();
     }
-
-
-
+    public TableModel getTransitions(){
+        return transitionsTable.getModel();
+    }
+    //may need to add getters for the String[] state and alphabet
 
     // Simulation methods
-    private void simulateInput() {
 
-        if(app.inputIsValid()){
-            String input = inputField.getText().trim();
-            outputArea.setText("Valid, Simulating input: " + input + "\n");
-        }else{
-            outputArea.setText("Not a valid input\n");
+    //helper method to get the labels for the alphabet and the states
+    private String[] createLabels(String s){
+        s.trim();
+        String[] array =  s.split(" ");//will make string seperating by spaces
 
+        for (int i = 0; i < array.length; i++){
+            array[i] = array[i].trim();
         }
 
-    }
-    
-    private void stepSimulation() {
-        outputArea.append("Step executed\n");
-    }
-    
-    private void resetSimulation() {
-        outputArea.setText("Simulation reset\n");
-    }
-  
-    private void removeStep() {
-        outputArea.append("Step removed\n");//add this to a new line
+        return array;
     }
 
-    private void changeOnTable(){
-        //refresh the table when someone types on it
+    private void changeOnTable(){ //refresh the table when someone types on it
 
-        String[] alphabet = createLabels(getAlphabet());
-        String[] states = createLabels(getStates());
+        alphabet = createLabels(getAlphabet());
+        states = createLabels(getStates());
 
         DefaultTableModel model = (DefaultTableModel) transitionsTable.getModel();
 
@@ -326,5 +307,42 @@ public class frontend extends JFrame {
             model.setValueAt(states[i], i + 1, 0);
         }
 
-        }
+    }
+
+    //Button Clicks
+    private void simulateInput() {
+        //check if alphabet is valid(no duplicates)
+        app.checkForDuplicates(alphabet);
+
+        //check if input is valid
+        app.inputIsValid();
+
+        //check if states are valid
+        app.checkForDuplicates(states);
+
+        //check if accept states are contained in states
+
+
+        //check if start state is contained in 
+
+        
+
+
+
+    }
+    
+    private void stepSimulation() {
+        outputArea.append("Step executed\n");
+    }
+    
+    private void resetSimulation() {
+        //outputArea.setText("Simulation reset\n");
+        outputArea.removeAll();
+    }
+  
+    private void removeStep() {
+        outputArea.append("Step removed\n");//add this to a new line
+    }
+
+    
 }
