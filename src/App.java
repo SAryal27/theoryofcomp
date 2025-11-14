@@ -9,6 +9,7 @@ public class App {
     private String input;
     private char[] alphabet;
     private List<Character> alphabetList = new ArrayList<>();
+    private HashSet<String> checker;//contains the hashSet of states
 
 
 
@@ -36,35 +37,32 @@ public class App {
     }
 
 
-    //CHECKING STATES INPUT AND TRASITION TABLE
-    /*public boolean checkForDuplicates(String[] array){//state input and alpabet validity
-        for(int i = 0; i < array.length; i++){
-            for(int j = 0; i < array.length; j++){
-                if(i == j){
-                    //do nothing its the same spot on the string
-                }else if(array[i].equals(array[j])){//if we have a duplicate name
-                    GUI.outputArea.append("Duplicates Found");
-                    return false;
-                } 
-            }
-        }
-
-        GUI.outputArea.append("No Duplicates Found");
-        return true;
-    }*/
-
+    //CHECKING STATES INPUT
     public boolean checkForDuplicates(String[] array){//state input and alpabet validity
-        HashSet<String> checker = new HashSet<>();
+        checker = new HashSet<>();
 
         for(int i = 0; i < array.length; i++){
             if(checker.contains(array[i])){
-                GUI.outputArea.append("Duplicates Found(Fix input/s)");
                 return false;
             }
            checker.add(array[i]);//not a duplicate add to the list
         }
 
-        GUI.outputArea.append("No Duplicates Found");
+        return true;
+    }
+
+    //CHECKING IF THE ACCEPT STATES AND START STATE IS VALID
+
+    public boolean startStateIsValid(){
+       return checker.contains(GUI.getStartState());
+    }
+
+    public boolean acceptStatesAreValid(String[] array){
+        for(int i = 0; i < array.length; i++){
+            if(!checker.contains(array[i])){
+                return false;
+            }
+        }
         return true;
     }
 
@@ -88,12 +86,10 @@ public class App {
 
         for(int i = 0; i < input.length(); i++){
             if(!alphabetList.contains(input.charAt(i))){
-                GUI.outputArea.setText("Not a valid input\n");
                 return false;
             }
         }
 
-        GUI.outputArea.setText("Valid, Simulating input: " + input + "\n");
         return true;
     }
 

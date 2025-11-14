@@ -18,6 +18,7 @@ public class frontend extends JFrame {
 
     private String[] alphabet;
     private String[] states;
+    private String[] acceptStates;
 
 
     private App app;
@@ -242,6 +243,7 @@ public class frontend extends JFrame {
     // Attach listener to your states and alphabet text areas
     statesField.getDocument().addDocumentListener(listener);
     alphabetField.getDocument().addDocumentListener(listener);
+    acceptField.getDocument().addDocumentListener(listener);
 }
 
     
@@ -262,6 +264,10 @@ public class frontend extends JFrame {
     public String getAcceptStates(){
         return acceptField.getText();
     }
+    public String getStartState(){
+        return startField.getText();
+    }
+
     public TableModel getTransitions(){
         return transitionsTable.getModel();
     }
@@ -285,6 +291,7 @@ public class frontend extends JFrame {
 
         alphabet = createLabels(getAlphabet());
         states = createLabels(getStates());
+        acceptStates = createLabels(acceptField.getText());
 
         DefaultTableModel model = (DefaultTableModel) transitionsTable.getModel();
 
@@ -311,23 +318,34 @@ public class frontend extends JFrame {
 
     //Button Clicks
     private void simulateInput() {
-        //check if alphabet is valid(no duplicates)
-        app.checkForDuplicates(alphabet);
+        outputArea.setText("");
 
-        //check if input is valid
-        app.inputIsValid();
+        if (app.checkForDuplicates(alphabet)){//check if alphabet is valid(no duplicates)
+            outputArea.append("Alphabet Input Is Valid\n");
 
-        //check if states are valid
-        app.checkForDuplicates(states);
+            if(app.inputIsValid()){//check if input is valid
+                outputArea.append("Input String Is Valid\n");
 
-        //check if accept states are contained in states
+                if(app.checkForDuplicates(states)){////check if states input is valid(no dupes)
+                    outputArea.append("States Input Is Valid\n");
 
-
-        //check if start state is contained in 
-
+                    if(app.startStateIsValid()){
+                        outputArea.append("Start State Input Is Valid\n");
+                        
+                        if(app.acceptStatesAreValid(acceptStates)){
+                            outputArea.append("Accept States Input Is Valid\n");
+                            /*if(){
+                                //check the transtion table
+                                if(){
+                                    //make the graph everything is valid
+                                }
+                            }*/
+                        }else{outputArea.append("Accept States Input Is Not Valid Fix Before Simulating\n");}
+                    }else{outputArea.append("Start State Is Not Valid Fix Before Simulating\n");}
+                }else{outputArea.append("States Input Is Not Valid Fix Before Simulating\n");}
+            }else{outputArea.append("Input String Is Not Valid Fix Before Simulating\n");}
+        }else{outputArea.append("Alphabet Is Not Valid Fix Before Simulating\n");}
         
-
-
 
     }
     
