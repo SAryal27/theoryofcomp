@@ -9,7 +9,7 @@ public class App {
     private String input;
     private char[] alphabet;
     private List<Character> alphabetList = new ArrayList<>();
-    private HashSet<String> checker;//contains the hashSet of states
+    private HashSet<String> checker;//contains the hashSet of states(since its called second)
 
 
 
@@ -42,6 +42,8 @@ public class App {
         checker = new HashSet<>();
 
         for(int i = 0; i < array.length; i++){
+            
+
             if(checker.contains(array[i])){
                 return false;
             }
@@ -66,6 +68,17 @@ public class App {
         return true;
     }
 
+    public boolean checkTransitionTable(){
+        for(int i = 1; i < GUI.getTransitions().getRowCount(); i++){//first row and col have display values(we don't check)
+            for(int j = 1; j < GUI.getTransitions().getColumnCount(); j++){
+                if(!checker.contains(GUI.getTransitions().getValueAt(i, j))){
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 
 
     ///BELOW IS THE CODE FOR CHECKING IF INPUT IS VALID

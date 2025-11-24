@@ -244,6 +244,7 @@ public class frontend extends JFrame {
     statesField.getDocument().addDocumentListener(listener);
     alphabetField.getDocument().addDocumentListener(listener);
     acceptField.getDocument().addDocumentListener(listener);
+
 }
 
     
@@ -334,12 +335,12 @@ public class frontend extends JFrame {
                         
                         if(app.acceptStatesAreValid(acceptStates)){
                             outputArea.append("Accept States Input Is Valid\n");
-                            /*if(){
-                                //check the transtion table
-                                if(){
+                            if(app.checkTransitionTable()){
+                                outputArea.append("Tranitions Are Valid\n");
+                                /*if(){
                                     //make the graph everything is valid
-                                }
-                            }*/
+                                }*/
+                            }else{outputArea.append("Transition Table Is Not Valid Fix Before Simulating\n");}
                         }else{outputArea.append("Accept States Input Is Not Valid Fix Before Simulating\n");}
                     }else{outputArea.append("Start State Is Not Valid Fix Before Simulating\n");}
                 }else{outputArea.append("States Input Is Not Valid Fix Before Simulating\n");}
