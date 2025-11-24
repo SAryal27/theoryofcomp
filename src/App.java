@@ -11,7 +11,7 @@ public class App {
     private List<Character> alphabetList = new ArrayList<>();
     private HashSet<String> checker;//contains the hashSet of states(since its called second)
 
-
+    private DFA dfa;
 
     public static void main(String[] args) {
 
@@ -106,5 +106,18 @@ public class App {
         return true;
     }
 
-}
+    //build DFA from the GUI contents and store it in this.dfa
+    public boolean buildDFAFromGUI() {
+        //validation should be done already by frontend; this just builds structure
+        dfa = DFA.fromFrontend(GUI);
 
+        //set positions using circular layout (DFAPanel also lays out but keep here for consistency)
+        return true;
+    }
+
+    //show the DFA to frontend
+    public DFA getDFA() {
+        return dfa;
+    }
+
+}

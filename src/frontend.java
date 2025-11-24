@@ -25,7 +25,11 @@ public class frontend extends JFrame {
 
 
     public JTextArea outputArea;
-    private JButton stepButton, resetButton, removeButton;    
+    private JButton stepButton, resetButton, removeButton;
+
+    // NEW: visualization panel
+    private DFAPanel dfaPanel;
+
     public frontend(App app) {
         this.app = app;
         initializeUI();
@@ -35,7 +39,7 @@ public class frontend extends JFrame {
     private void initializeUI() {
         setTitle("DFA animator program");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(1000, 700);
         setLocationRelativeTo(null);
         
         // Create main panel with border layout
@@ -155,13 +159,18 @@ public class frontend extends JFrame {
         JPanel outputPanel = new JPanel(new BorderLayout());
         outputPanel.setBorder(BorderFactory.createTitledBorder("Simulation Steps"));
         
-        outputArea = new JTextArea(15, 50);
+        outputArea = new JTextArea(10, 50);
         outputArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         outputArea.setEditable(false);
         JScrollPane outputScroll = new JScrollPane(outputArea);
         
         outputPanel.add(outputScroll, BorderLayout.CENTER);
         
+        // Visualization panel (DFAPanel)
+        dfaPanel = new DFAPanel();
+        dfaPanel.setPreferredSize(new Dimension(700, 300));
+        dfaPanel.setBorder(BorderFactory.createTitledBorder("DFA Visualization"));
+
         // Add all panels to main panel in vertical order
         mainPanel.add(inputPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
@@ -174,6 +183,8 @@ public class frontend extends JFrame {
         mainPanel.add(acceptPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Spacing
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // More spacing
+        mainPanel.add(dfaPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         mainPanel.add(outputPanel);
 
         addTextBoxListeners();
@@ -278,8 +289,10 @@ public class frontend extends JFrame {
 
     //helper method to get the labels for the alphabet and the states
     private String[] createLabels(String s){
-        s.trim();
-        String[] array =  s.split(" ");//will make string seperating by spaces
+        if (s == null) return new String[0];
+        s = s.trim();
+        if (s.isEmpty()) return new String[0];
+        String[] array =  s.split("\\s+");//will make string seperating by spaces
 
         for (int i = 0; i < array.length; i++){
             array[i] = array[i].trim();
@@ -297,8 +310,8 @@ public class frontend extends JFrame {
         DefaultTableModel model = (DefaultTableModel) transitionsTable.getModel();
 
         // Ensure the model has enough rows and columns
-        int requiredRows = states.length + 1;
-        int requiredCols = alphabet.length + 1;
+        int requiredRows = Math.max(2, states.length + 1);
+        int requiredCols = Math.max(2, alphabet.length + 1);
 
         model.setRowCount(requiredRows);
         model.setColumnCount(requiredCols);
@@ -321,13 +334,13 @@ public class frontend extends JFrame {
     private void simulateInput() {
         outputArea.setText("");
 
-        if (app.checkForDuplicates(alphabet)){//check if alphabet is valid(no duplicates)
+        if (app.checkForDuplicates(createLabels(getAlphabet()))){//check if alphabet is valid(no duplicates)
             outputArea.append("Alphabet Input Is Valid\n");
 
             if(app.inputIsValid()){//check if input is valid
                 outputArea.append("Input String Is Valid\n");
 
-                if(app.checkForDuplicates(states)){////check if states input is valid(no dupes)
+                if(app.checkForDuplicates(createLabels(getStates()))){////check if states input is valid(no dupes)
                     outputArea.append("States Input Is Valid\n");
 
                     if(app.startStateIsValid()){
@@ -337,9 +350,17 @@ public class frontend extends JFrame {
                             outputArea.append("Accept States Input Is Valid\n");
                             if(app.checkTransitionTable()){
                                 outputArea.append("Tranitions Are Valid\n");
-                                /*if(){
-                                    //make the graph everything is valid
-                                }*/
+                                // Build DFA and draw
+                                app.buildDFAFromGUI();
+                                DFAPanel panel = dfaPanel;
+                                panel.setDFA(app.getDFA());
+                                panel.layoutStatesCircle();
+                                panel.repaint();
+
+                                // run simulation fully and print result
+                                DFA built = app.getDFA();
+                                built.run();
+                                outputArea.append(built.finalReport() + "\n");
                             }else{outputArea.append("Transition Table Is Not Valid Fix Before Simulating\n");}
                         }else{outputArea.append("Accept States Input Is Not Valid Fix Before Simulating\n");}
                     }else{outputArea.append("Start State Is Not Valid Fix Before Simulating\n");}
@@ -352,15 +373,64 @@ public class frontend extends JFrame {
     
     private void stepSimulation() {
         outputArea.append("Step executed\n");
+
+        // Build if not yet built
+        if (app.getDFA() == null) {
+            if (!app.buildDFAFromGUI()) {
+                outputArea.append("Failed to build DFA\n");
+                return;
+            }
+            dfaPanel.setDFA(app.getDFA());
+        }
+
+        DFA dfa = app.getDFA();
+        boolean did = dfa.step();
+        if (did) {
+            outputArea.append(dfa.stepReport() + "\n");
+            dfaPanel.repaint();
+            if (dfa.getPosition() >= dfa.getInput().length()) {
+                outputArea.append("Input exhausted. " + dfa.finalReport() + "\n");
+            }
+        } else {
+            outputArea.append("No more symbols to step. ");
+            if (dfa != null) outputArea.append(dfa.finalReport() + "\n");
+            else outputArea.append("\n");
+        }
     }
     
     private void resetSimulation() {
         //outputArea.setText("Simulation reset\n");
-        outputArea.removeAll();
+        if (app.getDFA() != null) {
+            app.getDFA().reset();
+        }
+        outputArea.setText("");
+        outputArea.append("Simulation reset\n");
+        dfaPanel.repaint();
     }
   
     private void removeStep() {
         outputArea.append("Step removed\n");//add this to a new line
+        // perform a simple undo by rebuilding and stepping to pos-1
+        DFA original = app.getDFA();
+        if (original == null) {
+            outputArea.append("Nothing to remove\n");
+            return;
+        }
+        int pos = original.getPosition();
+        if (pos <= 0) {
+            outputArea.append("At start; nothing to remove\n");
+            return;
+        }
+        DFA rebuilt = new DFA();
+        rebuilt.rebuildAndStepTo(pos - 1, original);
+        // replace DFA in app
+        app.buildDFAFromGUI(); // rebuild structural base from GUI
+        // copy runtime from rebuilt into app.dfa by rebuilding again using rebuildAndStepTo
+        DFA current = app.getDFA();
+        current.rebuildAndStepTo(pos - 1, rebuilt);
+        dfaPanel.setDFA(current);
+        dfaPanel.repaint();
+        outputArea.append("Removed last step. Position now: " + current.getPosition() + "\n");
     }
 
     
