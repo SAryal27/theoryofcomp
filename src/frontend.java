@@ -354,7 +354,7 @@ public class frontend extends JFrame {
                                 app.buildDFAFromGUI();
                                 DFAPanel panel = dfaPanel;
                                 panel.setDFA(app.getDFA());
-                                panel.layoutStatesCircle();
+                                panel.layoutStatesLine();;
                                 panel.repaint();
 
                                 // run simulation fully and print result
