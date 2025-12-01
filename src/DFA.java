@@ -1,5 +1,7 @@
 // DFA.java
 import java.util.*;
+
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
 
 public class DFA {
@@ -176,21 +178,7 @@ public class DFA {
         return isAccepting();
     }
 
-    //runs with breaks in between each transition 
-    public boolean runSimulation() {
-    while (position < input.length()) {
-        step();
 
-        //pause half a second
-        try {
-            Thread.sleep(500);//in ms
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            break;
-        }
-    }
-    return isAccepting();
-}
 
 
 

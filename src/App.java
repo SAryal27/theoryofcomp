@@ -116,9 +116,13 @@ public class App {
     }
 
     //show the DFA to frontend
-    public DFA getDFA() {
-        //return dfa;
+    public DFA makeDFA() {
+        dfa = DFA.fromFrontend(GUI);
+
         return DFA.fromFrontend(GUI);
     }
 
+    public DFA getDFA() {
+        return dfa;
+    }
 }
