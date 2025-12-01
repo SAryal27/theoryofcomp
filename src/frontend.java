@@ -289,23 +289,28 @@ public class frontend extends JFrame {
 
     //helper method to get the labels for the alphabet and the states
     private String[] createLabels(String s){
-        if (s == null) return new String[0];
-        s = s.trim();
+        s = s.trim();//trim the string so we don't read whitespace
+
+        if (s == null) return new String[0];//if there is no input
         if (s.isEmpty()) return new String[0];
-        String[] array =  s.split("\\s+");//will make string seperating by spaces
 
-        for (int i = 0; i < array.length; i++){
-            array[i] = array[i].trim();
+        if(s.contains(" ")){
+            String[] array =  s.split("\\s+");//will make string seperating by spaces
+            for (int i = 0; i < array.length; i++){
+                array[i] = array[i].trim();
+            }
+
+            return array;
         }
-
-        return array;
+        else{return new String[] {s};}
+        
     }
 
     private void changeOnTable(){ //refresh the table when someone types on it
 
         alphabet = createLabels(getAlphabet());
         states = createLabels(getStates());
-        acceptStates = createLabels(acceptField.getText());
+        acceptStates = createLabels(getAcceptStates());
 
         DefaultTableModel model = (DefaultTableModel) transitionsTable.getModel();
 
@@ -332,15 +337,17 @@ public class frontend extends JFrame {
 
     //Button Clicks
     private void simulateInput() {
+        changeOnTable();//make sure the variables are up to date
+
         outputArea.setText("");
 
-        if (app.checkForDuplicates(createLabels(getAlphabet()))){//check if alphabet is valid(no duplicates)
+        if (app.checkForDuplicates(alphabet)){//check if alphabet is valid(no duplicates)
             outputArea.append("Alphabet Input Is Valid\n");
 
             if(app.inputIsValid()){//check if input is valid
                 outputArea.append("Input String Is Valid\n");
 
-                if(app.checkForDuplicates(createLabels(getStates()))){////check if states input is valid(no dupes)
+                if(app.checkForDuplicates(states)){////check if states input is valid(no dupes)
                     outputArea.append("States Input Is Valid\n");
 
                     if(app.startStateIsValid()){
@@ -360,6 +367,7 @@ public class frontend extends JFrame {
                                 // run simulation fully and print result
                                 DFA built = app.getDFA();
                                 built.run();
+
                                 outputArea.append(built.finalReport() + "\n");
                             }else{outputArea.append("Transition Table Is Not Valid Fix Before Simulating\n");}
                         }else{outputArea.append("Accept States Input Is Not Valid Fix Before Simulating\n");}

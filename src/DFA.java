@@ -168,13 +168,31 @@ public class DFA {
         return true;
     }
 
-    //run to end
+    //run the whole string no breaks
     public boolean run() {
         while (position < input.length()) {
             if (!step()) break;
         }
         return isAccepting();
     }
+
+    //runs with breaks in between each transition 
+    public boolean runSimulation() {
+    while (position < input.length()) {
+        step();
+
+        //pause half a second
+        try {
+            Thread.sleep(500);//in ms
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            break;
+        }
+    }
+    return isAccepting();
+}
+
+
 
     //undo-ish rebuild and step to target(frontend remove)
     public void rebuildAndStepTo(int targetPosition, DFA originalStructure) {

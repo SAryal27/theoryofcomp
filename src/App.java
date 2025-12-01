@@ -117,7 +117,8 @@ public class App {
 
     //show the DFA to frontend
     public DFA getDFA() {
-        return dfa;
+        //return dfa;
+        return DFA.fromFrontend(GUI);
     }
 
 }
